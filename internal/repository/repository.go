@@ -118,9 +118,11 @@ func (r *Repository) UpsertStar(purchase models.PurchaseRequest) (models.Purchas
 	case level == "bronze" && stars >= 5:
 		level_up = true
 		newLevel = "silver"
-	case level == "silver" && stars >= 15:
+		stars = 0
+	case level == "silver" && stars >= 5:
 		level_up = true
 		newLevel = "gold"
+		stars = 0
 	default:
 		level_up = false
 	}
