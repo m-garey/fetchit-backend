@@ -14,11 +14,11 @@ type Repository struct {
 
 type API interface {
 	CreateTables() error
-	InsertUser() (int, error)
+	InsertUser(string) (int, error)
 	InsertStore(string, string) (int, error)
-	AddStarAndUpgrade(int, int) error
-	ShowSticker(int, int) error
-	GetStickers(int) error
+	UpsertStar(int, int) error
+	GetSticker(int, int) error
+	GetStickersByUser(int) error
 }
 
 func New(db *pgx.Conn) *Repository {
@@ -93,7 +93,7 @@ func (r *Repository) InsertStore(name string, location string) (int, error) {
 	return id, nil
 }
 
-func (r *Repository) AddStarAndUpgrade(userID int, storeID int) error {
+func (r *Repository) UpsertStar(userID int, storeID int) error {
 	var stars int
 	var level string
 
@@ -126,7 +126,7 @@ func (r *Repository) AddStarAndUpgrade(userID int, storeID int) error {
 	return nil
 }
 
-func (r *Repository) ShowSticker(userID int, storeID int) error {
+func (r *Repository) GetSticker(userID int, storeID int) error {
 	var stars int
 	var level string
 	err := r.conn.QueryRow(context.Background(),
@@ -138,7 +138,7 @@ func (r *Repository) ShowSticker(userID int, storeID int) error {
 	return nil
 }
 
-func (r *Repository) GetStickers(userID int) error {
+func (r *Repository) GetStickersByUser(userID int) error {
 	rows, err := r.conn.Query(context.Background(),
 		`SELECT s.id, st.name, st.location, s.stars, s.level FROM stickers s
 		JOIN stores st ON s.store_id = st.id WHERE s.user_id = $1`, userID)
