@@ -84,3 +84,9 @@ type UserStickerResponse struct {
 type StickerByUserResponse struct {
 	Stickers []UserStickerResponse `json:"stickers"`
 }
+
+// ERROR
+
+type ErrorResponse struct {
+	Error string `json:"error"`
+}

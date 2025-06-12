@@ -5,6 +5,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
@@ -14,14 +17,45 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+const port string = "8080"
+
 func Run() {
 	db := setupDB()
+	defer db.Close(context.Background())
 
 	repo := repository.New(db)
 	h := handler.New(repo)
 	router := setupRouter()
 	setupHandler(router, h)
 
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: router,
+	}
+
+	// Start server in goroutine for graceful shutdown
+	go func() {
+		log.Printf("HTTP server listening on %s", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("failed to start server: %v", err)
+		}
+	}()
+
+	// Wait for interrupt signal
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("shutting down server...")
+
+	// Gracefully shutdown with 10s timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("server shutdown failed: %v", err)
+	}
+
+	log.Println("server stopped gracefully")
 }
 
 func setupDB() *pgx.Conn {
@@ -29,7 +63,6 @@ func setupDB() *pgx.Conn {
 	if err != nil {
 		log.Fatalf("Failed to connect to the database: %v", err)
 	}
-	defer conn.Close(context.Background())
 
 	// Example query to test connection
 	var version string

@@ -1,0 +1,207 @@
+definitions:
+  models.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  models.PurchaseRequest:
+    properties:
+      store_id:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.PurchaseResponse:
+    properties:
+      level:
+        type: string
+      level_up:
+        type: boolean
+      star_count:
+        type: integer
+    type: object
+  models.StickerByUserResponse:
+    properties:
+      stickers:
+        items:
+          $ref: '#/definitions/models.UserStickerResponse'
+        type: array
+    type: object
+  models.StoreRequest:
+    properties:
+      location:
+        type: string
+      store_name:
+        type: string
+    type: object
+  models.StoreResponse:
+    properties:
+      store_id:
+        type: string
+    type: object
+  models.UserRequest:
+    properties:
+      username:
+        type: string
+    type: object
+  models.UserResponse:
+    properties:
+      user_id:
+        type: string
+    type: object
+  models.UserStickerResponse:
+    properties:
+      level:
+        type: string
+      location:
+        type: string
+      star_count:
+        type: integer
+      store_name:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/purchase:
+    post:
+      consumes:
+      - application/json
+      description: Record a purchase and potentially award or level up a sticker
+      parameters:
+      - description: Purchase info
+        in: body
+        name: purchase
+        required: true
+        schema:
+          $ref: '#/definitions/models.PurchaseRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PurchaseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Record a user purchase
+      tags:
+      - Purchases
+  /api/stickers/:user_id:
+    get:
+      description: Retrieve all stickers that belong to a specific user
+      parameters:
+      - description: User ID
+        in: query
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.StickerByUserResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get all stickers for a user
+      tags:
+      - Stickers
+  /api/stickers/:user_id/:store_id:
+    get:
+      description: Retrieve a sticker for a given user and store
+      parameters:
+      - description: User ID
+        in: query
+        name: user_id
+        required: true
+        type: string
+      - description: Store ID
+        in: query
+        name: store_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserStickerResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get a specific user-store sticker
+      tags:
+      - Stickers
+  /api/stores:
+    post:
+      consumes:
+      - application/json
+      description: Register a new store with name and location
+      parameters:
+      - description: Store info
+        in: body
+        name: store
+        required: true
+        schema:
+          $ref: '#/definitions/models.StoreRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.StoreResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Create a new store
+      tags:
+      - Stores
+  /api/users:
+    post:
+      consumes:
+      - application/json
+      description: Create a user with a given username
+      parameters:
+      - description: User info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Create a new user
+      tags:
+      - Users
+swagger: "2.0"
